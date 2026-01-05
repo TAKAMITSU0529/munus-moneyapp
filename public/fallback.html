@@ -53,111 +53,174 @@
         .container {
             text-align: center;
             max-width: 400px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 32px 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+        }
+
+        .icon {
+            font-size: 4rem;
+            margin-bottom: 16px;
         }
 
         h1 {
-            font-size: 1.8rem;
-            margin-bottom: 16px;
+            font-size: 1.5rem;
+            margin-bottom: 12px;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
         p {
-            font-size: 1rem;
+            font-size: 0.95rem;
             line-height: 1.6;
             margin-bottom: 24px;
-            opacity: 0.9;
+            opacity: 0.95;
         }
 
-        .loader {
-            width: 50px;
-            height: 50px;
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            border-top: 4px solid white;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 24px;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        .fallback-link {
-            display: inline-block;
+        .browser-btn {
+            display: block;
             background: white;
             color: #0D9488;
-            padding: 14px 28px;
-            border-radius: 8px;
+            padding: 16px 28px;
+            border-radius: 12px;
             text-decoration: none;
             font-weight: bold;
-            font-size: 1rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            transition: transform 0.2s;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-bottom: 16px;
         }
 
-        .fallback-link:active {
+        .browser-btn:active {
             transform: scale(0.98);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .copy-btn {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
 
         .note {
-            margin-top: 24px;
-            font-size: 0.85rem;
+            margin-top: 20px;
+            font-size: 0.8rem;
             opacity: 0.8;
+            line-height: 1.5;
         }
 
-        #app-loading {
-            display: block;
+        .url-display {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            margin: 16px 0;
+            word-break: break-all;
+            font-family: monospace;
         }
 
-        #app-fallback {
-            display: none;
+        .features {
+            text-align: left;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 16px;
+            margin: 20px 0;
+        }
+
+        .features li {
+            margin: 8px 0;
+            padding-left: 24px;
+            position: relative;
+            font-size: 0.9rem;
+        }
+
+        .features li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #4ade80;
         }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <div id="app-loading">
-            <div class="loader"></div>
-            <h1>資産形成シミュレーター</h1>
-            <p>アプリを読み込んでいます...</p>
+        <div class="icon">📊</div>
+        <h1>資産形成シミュレーター</h1>
+        <p>投資信託や積立投資の将来シミュレーションで<br>資産形成を直感的に理解できるアプリです</p>
+
+        <ul class="features">
+            <li>毎月の積立から将来の資産額を計算</li>
+            <li>複利効果を直感的に理解</li>
+            <li>収入・支出のシミュレーション</li>
+        </ul>
+
+        <a href="https://munus-moneyapp.vercel.app/?openExternalBrowser=1" class="browser-btn" id="openBtn">
+            🌐 ブラウザで開く
+        </a>
+
+        <p class="note">
+            ※ LINEアプリ内では正常に動作しないため、<br>
+            Safari または Chrome で開いてください
+        </p>
+
+        <div class="url-display" id="urlDisplay">
+            munus-moneyapp.vercel.app
         </div>
 
-        <div id="app-fallback">
-            <h1>📊 資産形成シミュレーター</h1>
-            <p>投資信託や積立投資の将来シミュレーションで資産形成を直感的に理解できます。</p>
-            <a href="https://munus-moneyapp.vercel.app/" class="fallback-link" onclick="openExternal(event)">
-                ブラウザで開く
-            </a>
-            <p class="note">※ LINEアプリ内では正常に動作しない場合があります。<br>上のボタンからSafari/Chromeで開いてください。</p>
-        </div>
+        <a href="#" class="copy-btn" id="copyBtn" onclick="copyUrl(event)">
+            📋 URLをコピー
+        </a>
     </div>
 
     <script>
-        // Show fallback after 5 seconds if the main app doesn't load
-        setTimeout(function () {
-            document.getElementById('app-loading').style.display = 'none';
-            document.getElementById('app-fallback').style.display = 'block';
-        }, 5000);
+        var appUrl = 'https://munus-moneyapp.vercel.app/';
 
-        // Function to open in external browser
-        function openExternal(e) {
+        // Copy URL function
+        function copyUrl(e) {
             e.preventDefault();
-            var url = 'https://munus-moneyapp.vercel.app/';
-            // Try to open in external browser on LINE
-            if (navigator.userAgent.indexOf('Line') > -1) {
-                // LINE browser detected - use special URL scheme
-                window.location.href = url + '?openExternalBrowser=1';
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(appUrl).then(function () {
+                    document.getElementById('copyBtn').textContent = '✓ コピーしました！';
+                    setTimeout(function () {
+                        document.getElementById('copyBtn').textContent = '📋 URLをコピー';
+                    }, 2000);
+                });
             } else {
-                window.open(url, '_blank');
+                // Fallback for older browsers
+                var textArea = document.createElement('textarea');
+                textArea.value = appUrl;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                document.getElementById('copyBtn').textContent = '✓ コピーしました！';
+                setTimeout(function () {
+                    document.getElementById('copyBtn').textContent = '📋 URLをコピー';
+                }, 2000);
             }
         }
+
+        // Try to open in external browser using LINE's special query parameter
+        document.getElementById('openBtn').addEventListener('click', function (e) {
+            var ua = navigator.userAgent;
+
+            // For LINE browser, use the openExternalBrowser parameter
+            if (ua.indexOf('Line/') > -1) {
+                // Already handled by the href with ?openExternalBrowser=1
+                return true;
+            }
+
+            // For other in-app browsers, try window.open
+            e.preventDefault();
+            window.open(appUrl, '_system');
+        });
     </script>
 </body>
 

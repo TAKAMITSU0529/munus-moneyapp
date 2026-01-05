@@ -1,15 +1,15 @@
 // This script injects OGP meta tags into the generated index.html
 // It's run after expo export to add SEO and social sharing tags
 
-import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, readdirSync } from 'fs';
 import { join } from 'path';
 
 const distDir = './dist';
 const indexPath = join(distDir, 'index.html');
 
 if (!existsSync(indexPath)) {
-    console.error('index.html not found in dist directory');
-    process.exit(1);
+  console.error('index.html not found in dist directory');
+  process.exit(1);
 }
 
 let html = readFileSync(indexPath, 'utf-8');
@@ -40,35 +40,66 @@ const ogpTags = `
     <meta name="theme-color" content="#0D9488">
 `;
 
+// LINE browser detection and redirect script
+// This runs BEFORE any React/Expo code loads
+const lineDetectionScript = `
+<script>
+(function() {
+  // Detect LINE in-app browser
+  var ua = navigator.userAgent || navigator.vendor || window.opera;
+  var isLine = ua.indexOf('Line/') > -1 || ua.indexOf('LIFF') > -1;
+  
+  // Also detect other problematic in-app browsers
+  var isFacebook = ua.indexOf('FBAN') > -1 || ua.indexOf('FBAV') > -1;
+  var isInstagram = ua.indexOf('Instagram') > -1;
+  
+  if (isLine || isFacebook || isInstagram) {
+    // Redirect to fallback page for in-app browsers
+    window.location.replace('/fallback.html');
+  }
+})();
+</script>
+`;
+
 // Replace the title tag
 html = html.replace(/<title>.*?<\/title>/i, '<title>資産形成シミュレーター | 投資・積立シミュレーション</title>');
 
 // Insert OGP tags after the opening head tag
 if (!html.includes('og:title')) {
-    html = html.replace(/<head>/i, '<head>' + ogpTags);
+  html = html.replace(/<head>/i, '<head>' + ogpTags);
+}
+
+// Insert LINE detection script immediately after <head> (before any other scripts)
+if (!html.includes('Line/')) {
+  html = html.replace(/<head>/i, '<head>' + lineDetectionScript);
 }
 
 // Add noscript fallback
 const noscriptFallback = `
 <noscript>
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: linear-gradient(135deg, #0D9488, #0EA5E9); min-height: 100vh; display: flex; align-items: center; justify-content: center; margin: 0; }
-    .noscript-msg { background: white; padding: 40px; border-radius: 16px; text-align: center; max-width: 90%; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
-    .noscript-msg h1 { color: #0D9488; margin-bottom: 16px; }
-    .noscript-msg p { color: #666; line-height: 1.6; }
-    .noscript-msg a { display: inline-block; margin-top: 20px; background: #0D9488; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; }
-  </style>
-  <div class="noscript-msg">
-    <h1>📊 資産形成シミュレーター</h1>
-    <p>このアプリを利用するにはJavaScriptを有効にしてください。</p>
-    <p>LINEアプリ内ブラウザでは正常に動作しない場合があります。</p>
-    <a href="https://munus-moneyapp.vercel.app/?openExternalBrowser=1">Safari/Chromeで開く</a>
-  </div>
+  <meta http-equiv="refresh" content="0;url=/fallback.html">
 </noscript>`;
 
 if (!html.includes('<noscript>')) {
-    html = html.replace(/<body[^>]*>/i, (match) => match + noscriptFallback);
+  html = html.replace(/<head>/i, '<head>' + noscriptFallback);
 }
 
 writeFileSync(indexPath, html, 'utf-8');
-console.log('Successfully injected OGP meta tags and noscript fallback into index.html');
+console.log('Successfully injected OGP meta tags, LINE browser detection, and noscript fallback into index.html');
+
+// Also inject into other HTML files if they exist
+const htmlFiles = readdirSync(distDir).filter(f => f.endsWith('.html') && f !== 'index.html' && f !== 'fallback.html');
+for (const file of htmlFiles) {
+  const filePath = join(distDir, file);
+  let fileHtml = readFileSync(filePath, 'utf-8');
+
+  if (!fileHtml.includes('Line/')) {
+    fileHtml = fileHtml.replace(/<head>/i, '<head>' + lineDetectionScript);
+  }
+  if (!fileHtml.includes('og:title')) {
+    fileHtml = fileHtml.replace(/<head>/i, '<head>' + ogpTags);
+  }
+
+  writeFileSync(filePath, fileHtml, 'utf-8');
+  console.log(`Injected into ${file}`);
+}
