@@ -63,7 +63,7 @@ const config = {
     ],
   },
   web: {
-    output: "static",
+    output: "single",
     favicon: "./assets/images/favicon.png",
     name: "資産形成シミュレーター",
     shortName: "資産形成シミュレーター",
