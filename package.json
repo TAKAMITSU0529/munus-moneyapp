@@ -45,11 +45,10 @@
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@types/react": "~18.3.12",
-    "typescript": "^5.3.3",
-    "babel-plugin-react-compiler": "0.0.0-experimental-696af53-20241025"
+    "typescript": "^5.3.3"
   },
   "engines": {
-    "node": ">=22.0.0"
+    "node": "20.x"
   },
   "private": true
 }
