@@ -2,29 +2,9 @@
   "buildCommand": "npx expo export && cp -r public/* dist/",
   "outputDirectory": "dist",
   "framework": null,
-  "headers": [
-    {
-      "source": "/(.*).png",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ]
-    },
-    {
-      "source": "/manifest.json",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=86400"
-        }
-      ]
-    }
-  ],
   "rewrites": [
     {
-      "source": "/((?!ogp-image|apple-touch-icon|favicon|manifest|_expo|assets).*)",
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ]
