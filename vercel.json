@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npx expo export && cp -r public/* dist/",
+  "buildCommand": "npx expo export && node scripts/inject-ogp.mjs && cp -r public/* dist/",
   "outputDirectory": "dist",
   "framework": null,
   "rewrites": [

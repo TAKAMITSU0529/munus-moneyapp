@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>資産形成シミュレーター</title>
+
+    <!-- OGP Meta Tags for LINE -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://munus-moneyapp.vercel.app/">
+    <meta property="og:title" content="資産形成シミュレーター | 投資・積立シミュレーション">
+    <meta property="og:description" content="投資信託や積立投資の将来シミュレーションで資産形成を直感的に理解できるアプリ。毎月の積立額・期間・利回りから将来の資産を計算します。">
+    <meta property="og:image" content="https://munus-moneyapp.vercel.app/ogp-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="資産形成シミュレーター">
+    <meta property="og:locale" content="ja_JP">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="資産形成シミュレーター | 投資・積立シミュレーション">
+    <meta name="twitter:description" content="投資信託や積立投資の将来シミュレーションで資産形成を直感的に理解できるアプリ。">
+    <meta name="twitter:image" content="https://munus-moneyapp.vercel.app/ogp-image.png">
+
+    <!-- PWA -->
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="資産形成シミュレーター">
+    <meta name="theme-color" content="#0D9488">
+    <link rel="manifest" href="/manifest.json">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Hiragino Sans', 'Noto Sans CJK JP', sans-serif;
+            background: linear-gradient(135deg, #0D9488 0%, #0EA5E9 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: white;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 400px;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 16px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        p {
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 24px;
+            opacity: 0.9;
+        }
+
+        .loader {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 24px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .fallback-link {
+            display: inline-block;
+            background: white;
+            color: #0D9488;
+            padding: 14px 28px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s;
+        }
+
+        .fallback-link:active {
+            transform: scale(0.98);
+        }
+
+        .note {
+            margin-top: 24px;
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+
+        #app-loading {
+            display: block;
+        }
+
+        #app-fallback {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div id="app-loading">
+            <div class="loader"></div>
+            <h1>資産形成シミュレーター</h1>
+            <p>アプリを読み込んでいます...</p>
+        </div>
+
+        <div id="app-fallback">
+            <h1>📊 資産形成シミュレーター</h1>
+            <p>投資信託や積立投資の将来シミュレーションで資産形成を直感的に理解できます。</p>
+            <a href="https://munus-moneyapp.vercel.app/" class="fallback-link" onclick="openExternal(event)">
+                ブラウザで開く
+            </a>
+            <p class="note">※ LINEアプリ内では正常に動作しない場合があります。<br>上のボタンからSafari/Chromeで開いてください。</p>
+        </div>
+    </div>
+
+    <script>
+        // Show fallback after 5 seconds if the main app doesn't load
+        setTimeout(function () {
+            document.getElementById('app-loading').style.display = 'none';
+            document.getElementById('app-fallback').style.display = 'block';
+        }, 5000);
+
+        // Function to open in external browser
+        function openExternal(e) {
+            e.preventDefault();
+            var url = 'https://munus-moneyapp.vercel.app/';
+            // Try to open in external browser on LINE
+            if (navigator.userAgent.indexOf('Line') > -1) {
+                // LINE browser detected - use special URL scheme
+                window.location.href = url + '?openExternalBrowser=1';
+            } else {
+                window.open(url, '_blank');
+            }
+        }
+    </script>
+</body>
+
+</html>
