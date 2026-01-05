@@ -65,6 +65,11 @@ const config = {
   web: {
     output: "static",
     favicon: "./assets/images/favicon.png",
+    name: "資産形成シミュレーター",
+    shortName: "資産形成シミュレーター",
+    description: "投資信託や積立投資の将来シミュレーションで資産形成を直感的に理解できるアプリ。毎月の積立額・期間・利回りから将来の資産を計算します。",
+    themeColor: "#0D9488",
+    backgroundColor: "#ffffff",
   },
   plugins: [
     "expo-router",

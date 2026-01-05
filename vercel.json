@@ -1,10 +1,21 @@
 {
-  "buildCommand": "npx expo export",
+  "buildCommand": "npx expo export && cp assets/images/ogp-image.png dist/assets/ && cp assets/images/favicon.png dist/assets/",
   "outputDirectory": "dist",
   "framework": null,
+  "headers": [
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    }
+  ],
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/((?!assets/).*)",
       "destination": "/index.html"
     }
   ]
