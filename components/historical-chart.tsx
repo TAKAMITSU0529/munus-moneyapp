@@ -1,16 +1,50 @@
-import { View, StyleSheet, Dimensions } from "react-native";
-import { LineChart } from "react-native-chart-kit";
+import { View, StyleSheet, Dimensions, Platform } from "react-native";
 import { ThemedText } from "./themed-text";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { historicalIndexData } from "@/lib/historical-data";
+import { useState, useEffect } from "react";
+
+// Safe LineChart wrapper to handle errors
+function SafeLineChart(props: any) {
+  const [hasError, setHasError] = useState(false);
+  const [LineChartComponent, setLineChartComponent] = useState<any>(null);
+
+  useEffect(() => {
+    // Dynamically import chart to avoid SSR issues
+    try {
+      const { LineChart } = require("react-native-chart-kit");
+      setLineChartComponent(() => LineChart);
+    } catch (e) {
+      console.error("Failed to load chart:", e);
+      setHasError(true);
+    }
+  }, []);
+
+  if (hasError || !LineChartComponent) {
+    return null;
+  }
+
+  try {
+    return <LineChartComponent {...props} />;
+  } catch (e) {
+    console.error("Chart render error:", e);
+    return null;
+  }
+}
 
 export function HistoricalChart() {
   const tintColor = useThemeColor({}, "tint");
-  const textColor = useThemeColor({}, "text");
   const textSecondary = useThemeColor({}, "icon");
+  const [showChart, setShowChart] = useState(false);
 
   const screenWidth = Dimensions.get("window").width;
   const chartWidth = Math.min(screenWidth - 64, 350); // padding考慮、最大幅制限
+
+  // Delay chart rendering to improve initial load performance
+  useEffect(() => {
+    const timer = setTimeout(() => setShowChart(true), 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   // 5年ごとのラベルを表示
   const labels = historicalIndexData
@@ -38,40 +72,49 @@ export function HistoricalChart() {
       </ThemedText>
 
       <View style={styles.chartContainer}>
-        <LineChart
-          data={data}
-          width={chartWidth}
-          height={220}
-          chartConfig={{
-            backgroundColor: "transparent",
-            backgroundGradientFrom: "transparent",
-            backgroundGradientTo: "transparent",
-            decimalPlaces: 0,
-            color: (opacity = 1) => tintColor,
-            labelColor: (opacity = 1) => textSecondary,
-            style: {
-              borderRadius: 16,
-            },
-            propsForDots: {
-              r: "0",
-            },
-            propsForBackgroundLines: {
-              strokeDasharray: "",
-              stroke: textSecondary,
-              strokeOpacity: 0.1,
-            },
-            fillShadowGradient: tintColor,
-            fillShadowGradientOpacity: 0.1,
-          }}
-          bezier
-          style={styles.chart}
-          withInnerLines={true}
-          withOuterLines={true}
-          withVerticalLines={false}
-          withHorizontalLines={true}
-          withDots={false}
-          withShadow={false}
-        />
+        {showChart && Platform.OS !== "web" && (
+          <SafeLineChart
+            data={data}
+            width={chartWidth}
+            height={220}
+            chartConfig={{
+              backgroundColor: "transparent",
+              backgroundGradientFrom: "transparent",
+              backgroundGradientTo: "transparent",
+              decimalPlaces: 0,
+              color: (opacity = 1) => tintColor,
+              labelColor: (opacity = 1) => textSecondary,
+              style: {
+                borderRadius: 16,
+              },
+              propsForDots: {
+                r: "0",
+              },
+              propsForBackgroundLines: {
+                strokeDasharray: "",
+                stroke: textSecondary,
+                strokeOpacity: 0.1,
+              },
+              fillShadowGradient: tintColor,
+              fillShadowGradientOpacity: 0.1,
+            }}
+            bezier
+            style={styles.chart}
+            withInnerLines={true}
+            withOuterLines={true}
+            withVerticalLines={false}
+            withHorizontalLines={true}
+            withDots={false}
+            withShadow={false}
+          />
+        )}
+        {Platform.OS === "web" && (
+          <View style={styles.webFallback}>
+            <ThemedText style={[styles.webFallbackText, { color: textSecondary }]}>
+              2004年 → 2024年で約2.85倍に成長
+            </ThemedText>
+          </View>
+        )}
       </View>
 
       <View style={styles.insights}>
@@ -123,9 +166,18 @@ const styles = StyleSheet.create({
   chartContainer: {
     alignItems: "center",
     marginVertical: 8,
+    minHeight: 100,
   },
   chart: {
     borderRadius: 16,
+  },
+  webFallback: {
+    padding: 24,
+    alignItems: "center",
+  },
+  webFallbackText: {
+    fontSize: 16,
+    fontWeight: "600",
   },
   insights: {
     flexDirection: "row",

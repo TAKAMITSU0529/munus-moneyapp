@@ -1,18 +1,47 @@
-import { View, Dimensions, StyleSheet } from "react-native";
-import { LineChart } from "react-native-chart-kit";
+import { View, Dimensions, StyleSheet, Platform } from "react-native";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { ThemedText } from "./themed-text";
 import type { YearlyData } from "@/lib/calculator";
+import { useState, useEffect } from "react";
 
 interface InvestmentChartProps {
   data: YearlyData[];
+}
+
+// Safe LineChart wrapper to handle errors
+function SafeLineChart(props: any) {
+  const [hasError, setHasError] = useState(false);
+  const [LineChartComponent, setLineChartComponent] = useState<any>(null);
+
+  useEffect(() => {
+    // Dynamically import chart to avoid SSR issues
+    try {
+      const { LineChart } = require("react-native-chart-kit");
+      setLineChartComponent(() => LineChart);
+    } catch (e) {
+      console.error("Failed to load chart:", e);
+      setHasError(true);
+    }
+  }, []);
+
+  if (hasError || !LineChartComponent) {
+    return null;
+  }
+
+  try {
+    return <LineChartComponent {...props} />;
+  } catch (e) {
+    console.error("Chart render error:", e);
+    return null;
+  }
 }
 
 export function InvestmentChart({ data }: InvestmentChartProps) {
   const principalColor = "#007AFF"; // 青色（元本）
   const totalColor = "#34C759"; // 緑色（総資産）
   const textColor = useThemeColor({}, "text");
-  const backgroundColor = useThemeColor({}, "background");
+  const textSecondary = useThemeColor({}, "textSecondary");
+  const [chartError, setChartError] = useState(false);
 
   const screenWidth = Dimensions.get("window").width;
   const chartWidth = Math.min(screenWidth - 64, 380); // padding考慮、最大幅制限
@@ -26,6 +55,38 @@ export function InvestmentChart({ data }: InvestmentChartProps) {
   const labels = sampledData.map((d) => `${d.year}年`);
   const principalData = sampledData.map((d) => d.principal);
   const totalData = sampledData.map((d) => d.total);
+
+  // Webでチャートがエラーを起こす場合のフォールバック
+  if (Platform.OS === "web" && chartError) {
+    return (
+      <View style={styles.container}>
+        <ThemedText type="subtitle" style={styles.title}>
+          資産推移
+        </ThemedText>
+        <View style={styles.fallbackChart}>
+          {sampledData.map((d, index) => (
+            <View key={d.year} style={styles.fallbackRow}>
+              <ThemedText style={styles.fallbackLabel}>{d.year}年目</ThemedText>
+              <View style={styles.fallbackBars}>
+                <View
+                  style={[
+                    styles.fallbackBar,
+                    {
+                      backgroundColor: principalColor,
+                      width: `${(d.principal / totalData[totalData.length - 1]) * 100}%`
+                    }
+                  ]}
+                />
+              </View>
+              <ThemedText style={styles.fallbackValue}>
+                {Math.round(d.total / 10000)}万円
+              </ThemedText>
+            </View>
+          ))}
+        </View>
+      </View>
+    );
+  }
 
   const chartData = {
     labels,
@@ -71,7 +132,7 @@ export function InvestmentChart({ data }: InvestmentChartProps) {
         資産推移グラフ
       </ThemedText>
       <View style={styles.chartWrapper}>
-        <LineChart
+        <SafeLineChart
           data={chartData}
           width={chartWidth}
           height={220}
@@ -84,7 +145,7 @@ export function InvestmentChart({ data }: InvestmentChartProps) {
           withHorizontalLines={true}
           withDots={sampledData.length <= 10}
           withShadow={false}
-          formatYLabel={(value) => {
+          formatYLabel={(value: string) => {
             const num = parseFloat(value);
             if (num >= 10000000) {
               return `${(num / 10000000).toFixed(0)}千万`;
@@ -93,6 +154,7 @@ export function InvestmentChart({ data }: InvestmentChartProps) {
             }
             return `${(num / 10000).toFixed(0)}万`;
           }}
+          onError={() => setChartError(true)}
         />
       </View>
       <View style={styles.legend}>
@@ -142,5 +204,33 @@ const styles = StyleSheet.create({
   legendText: {
     fontSize: 14,
     lineHeight: 20,
+  },
+  fallbackChart: {
+    gap: 8,
+  },
+  fallbackRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  fallbackLabel: {
+    width: 50,
+    fontSize: 12,
+  },
+  fallbackBars: {
+    flex: 1,
+    height: 16,
+    backgroundColor: "#e5e7eb",
+    borderRadius: 4,
+    overflow: "hidden",
+  },
+  fallbackBar: {
+    height: "100%",
+    borderRadius: 4,
+  },
+  fallbackValue: {
+    width: 60,
+    fontSize: 12,
+    textAlign: "right",
   },
 });
